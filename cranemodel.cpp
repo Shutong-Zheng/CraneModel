@@ -5,6 +5,8 @@
 #include <QDebug>
 #include <QColor>
 
+const float PI = 3.1415926;
+
 CraneModel::CraneModel(QWidget *parent):
     QGLWidget(parent)
 {
@@ -16,21 +18,25 @@ CraneModel::CraneModel(QWidget *parent):
     theta = 15*3.14/180;
     l = 10;
 
-//    QTimer *timer = new QTimer(this);
-//    connect(timer, &QTimer::timeout, this, [=](){
-//                omega += 3.14/1000;
-//                theta += 3.14/1000;
-//                l += 1;
-//                if(theta > 3.14 * 50/180)
-//                {
-//                    theta = -3.14 * 30/180;
-//                }
-//                if(l > 26){
-//                    l = 0;
-//                }
-//                updateGL();
-//            });  //一直旋转，主要看坐标设置部分
-//    timer->start(40);
+    alpha = 10*3.14/180;
+    phi = 30*3.14/180;
+    d = 20;
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, [=](){
+                omega += 3.14/10000;
+                theta += 3.14/10000;
+                l += 1;
+                if(theta > 3.14 * 50/180)
+                {
+                    theta = -3.14 * 30/180;
+                }
+                if(l > 26){
+                    l = 0;
+                }
+                updateGL();
+            });  //一直旋转，主要看坐标设置部分
+    timer->start(40);
 }
 
 
@@ -38,9 +44,8 @@ void CraneModel::initializeGL()
 {
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glShadeModel(GL_SMOOTH);
-    //glEnable(GL_DEPTH);
+    glEnable(GL_DEPTH);
     glEnable(GL_DEPTH_TEST);
-    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 void CraneModel::paintGL()
@@ -50,13 +55,14 @@ void CraneModel::paintGL()
     glTranslatef(0, 0, -0.5);
     glRotatef(yRot, 1.0, 0.0, 0.0);
     glRotatef(zRot, 0.0, 0.0, 1.0);
-//    drawCoordinate(6);
+    drawCoordinate(-30, 50);
 //    drawRec(omega);
     drawCylinder(6);
     drawFixedBracket(omega, 1.5);
     drawFixedBracket1(theta, omega, 1.5, 1.5, 1.75);
     drawStrenchBracket(theta, omega, 0.8, l);
     drawHook(theta, omega, l, 0.8, 4);
+    drawObstacle(alpha, phi, d, 10);
     glPopMatrix();
 }
 
@@ -66,7 +72,7 @@ void CraneModel::resizeGL(int w, int h)
     glViewport((width() - side)/2, (height() - side)/2, side, side);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-4, 4, -2, 4, 6.0, 70.0);
+    glFrustum(-4, 4, -2, 4, 3.0, 100.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0.0, 0.0, -50.0);
@@ -112,7 +118,6 @@ void CraneModel::drawCylinder(float r)
 //绘制不动杆
 void CraneModel::drawFixedBracket(float omega, float d)
 {
-    float x,y;
     glBegin(GL_QUAD_STRIP);//连续填充四边形串
     qglColor(QColor(128,128,0));
 //    x = d/2;
@@ -450,96 +455,98 @@ void CraneModel::drawHook(float theta, float omega, float l, float d, float d1)
 }
 
 
-void CraneModel::drawCoordinate(float r)
+void CraneModel::drawCoordinate(float xMin, float xMax, float xStep,
+                                float yMin, float yMax, float yStep,
+                                float zMin, float zMax, float zStep)
 {
-    drawXAxis(r);
-    drawYAxis(r);
-    drawZAxis(r);
+    drawXAxis(xMin, xMax, xStep, yMin, yMax, zMin, zMax);
+    drawYAxis(yMin, yMax, yStep, xMin, xMax, zMin, zMax);
+    drawZAxis(zMin, zMax, zStep, xMin, xMax, yMin, yMax);
 }
 
-void CraneModel::drawXAxis(float r)
+void CraneModel::drawXAxis(float xMin, float xMax, float xStep,
+                           float yMin, float yMax,
+                           float zMin, float zMax)
 {
-    float d = 10;   //坐标轴原点起始位置
     glBegin(GL_LINES);
     qglColor(Qt::black);
-    glVertex3f(-r - d, -r - d, 0);
-    glVertex3f(-r - d + 40, -r - d, 0);
-    for(int i = 0;i < 40;i+=5)
+    glVertex3f(xMin, yMin, 0);
+    glVertex3f(xMax, yMin, 0);
+    for(int i = 0;i < xMax - xMin;i += xStep)
     {
         //绘制刻度
         qglColor(Qt::black);
-        glVertex3f(-r - d + i, - r - d, 0);
-        glVertex3f(-r - d + i, -r - d - 1, 0);
+        glVertex3f(xMin + i, yMin, 0);
+        glVertex3f(xMin + i, yMin - 1, 0);
         qglColor(QColor(192,192,192));
-        glVertex3f(-r - d + i, - r - d, 0);
-        glVertex3f(-r - d + i, -r - d + 40, 0);
-        glVertex3f(-r - d + i, -r - d + 40, 0);
-        glVertex3f(-r - d + i, -r - d + 40, 40);
+        glVertex3f(xMin + i, yMin, 0);
+        glVertex3f(xMin + i, yMax, 0);
+        glVertex3f(xMin + i, yMax, zMin);
+        glVertex3f(xMin + i, yMax, zMax);
     }
     glEnd();
     //添加文字
-    for(int i = 0;i < 40;i+=5)
+    for(int i = 0;i < xMax - xMin;i += xStep)
     {
-        renderText(-r - d + i, -r - d - 2, 0, QString::number(i - d - r));
+        renderText(xMin + i, yMin - 2, 0, QString::number(i + xMin));
     }
 }
 
-void CraneModel::drawYAxis(float r)
+void CraneModel::drawYAxis(float yMin, float yMax, float yStep,
+                           float xMin, float xMax,
+                           float zMin, float zMax)
 {
-    float d = 10;   //坐标轴原点起始位置
     glBegin(GL_LINES);
     qglColor(Qt::black);
-    glVertex3f(-r - d, -r - d, 0);
-    glVertex3f(-r - d, -r - d + 40, 0);
-    for(int i = 0;i < 40;i+=5)
+    glVertex3f(xMin, yMin, 0);
+    glVertex3f(xMin, yMax, 0);
+    for(int i = 0;i < yMax - yMin;i += yStep)
     {
         //绘制刻度
         qglColor(Qt::black);
-        glVertex3f(-r - d, - r - d + i, 0);
-        glVertex3f(-r - d - 1, -r - d + i, 0);
-
+        glVertex3f(xMin, yMin + i, 0);
+        glVertex3f(xMin - 1, yMin + i, 0);
         qglColor(QColor(192,192,192));
-        glVertex3f(-r - d, - r - d + i, 0);
-        glVertex3f(-r - d + 40, - r - d + i, 0);
-
-        glVertex3f(-r - d, - r - d + i, 0);
-        glVertex3f(-r - d, - r - d + i, 40);
+        glVertex3f(xMin, yMin + i, 0);
+        glVertex3f(xMax, yMin + i, 0);
+        glVertex3f(xMin, yMin + i, zMin);
+        glVertex3f(xMin, yMin + i, zMax);
     }
     glEnd();
-    for(int i = 0;i < 40;i+=5)
+    for(int i = 0;i < yMax - yMin;i += yStep)
     {
-        renderText(-r - d - 2, -r - d + i, 0, QString::number(i - d - r));
+        renderText(xMin - 2, yMin + i, 0, QString::number(yMin + i));
     }
 }
 
-void CraneModel::drawZAxis(float r)
+void CraneModel::drawZAxis(float zMin, float zMax, float zStep,
+                           float xMin, float xMax,
+                           float yMin, float yMax)
 {
-    float d = 10;   //坐标轴原点起始位置
     glBegin(GL_LINES);
     qglColor(Qt::black);
-    glVertex3f(-r - d, -r - d, 0);
-    glVertex3f(-r - d, -r - d, 40);
-    for(int i = 0;i < 40;i += 5)
+    glVertex3f(xMin, yMin, zMin);
+    glVertex3f(xMin, yMin, zMax);
+    for(int i = 0;i < zMax - zMin;i += zStep)
     {
         //绘制刻度
         qglColor(Qt::black);
-        glVertex3f(-r - d, - r - d, i);
-        glVertex3f(-r - d - 1, -r - d, i);
+        glVertex3f(xMin, yMin, zMin + i);
+        glVertex3f(xMin - 1, yMin, zMin + i);
 
         qglColor(QColor(192,192,192));
-        glVertex3f(-r - d, - r - d, i);
-        glVertex3f(-r - d, - r - d + 40, i);
-
-        glVertex3f(-r - d, - r - d + 40, i);
-        glVertex3f(-r - d + 40, - r - d + 40, i);
+        glVertex3f(xMin, yMin, i);
+        glVertex3f(xMin, yMax, i);
+        glVertex3f(xMin, yMax, i);
+        glVertex3f(xMax, yMax, i);
     }
     glEnd();
-    for(int i = 0;i < 40;i+=5)
+    for(int i = 0;i < zMax - zMin;i += zStep)
     {
         if(i == 0){
             continue;
         }
-        renderText(-r - d - 2, -r - d, i, QString::number(i));
+        renderText(xMin - 2, yMin, zMin + i, QString::number(zMin + i));
     }
 }
 
@@ -636,4 +643,85 @@ void CraneModel::drawRec(float omega){
     glVertex3f(cos(omega) + sin(omega),sin(omega) - cos(omega),0);
     glEnd();
     qDebug()<<sin(3.14159/180*45);
+}
+
+void CraneModel::drawObstacle(float alpha, float phi, float d, float r)
+{
+    float totalL = l + 24;
+    //顶点坐标
+    float xp1 = (totalL*cos(theta) - 6.75)*cos(omega);
+    float yp1 = (totalL*cos(theta) - 6.75)*sin(omega);
+    float zp1 = totalL*sin(theta) + 13;
+    //计算球心坐标
+    if(!obstacleDraw)
+    {
+        xv = xp1 + d*cos(alpha)*cos(phi);
+        yv = yp1 + d*cos(alpha)*sin(phi);
+        zv = zp1 + d*sin(alpha);
+        obstacleDraw = true;
+//        GLfloat LightAmbient[] = {253/255,245/255,230/255,0.5f};  //环境光参数
+//        GLfloat LightDiffuse[] = {0.3f, 0.5f, 0.2f, 0.5f};  //漫散光参数
+//        GLfloat LightPosition[] = {xv, yv, zv + 100, 0.6f}; //光源位置
+//        glEnable(GL_LIGHTING);
+//        glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);     //设置环境光
+//        glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);     //设置漫射光
+//        glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);   //设置光源位置
+//        glEnable(GL_LIGHT1);                                //启动一号光源
+    }
+    glEnable(GL_BLEND); // 打开混合
+    glDisable(GL_DEPTH_TEST); // 关闭深度测试
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    float color[4] = {220, 20, 60, 0.8};
+    drawSphere(xv, yv, zv, r, 100, 100, color);
+//    float color1[4] = {255, 99, 71, 0.6};
+//    drawSphere(xv, yv, zv, 10, 100, 100, color1);
+//    float color2[4] = {255, 250, 205, 0.5};
+//    drawSphere(xv, yv, zv, 13, 100, 100, color2);
+    glDisable(GL_BLEND); // 打开混合
+    glEnable(GL_DEPTH_TEST); // 关闭深度测试
+
+    //glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+}
+
+void CraneModel::drawSphere(float xx, float yy, float zz,
+                            float radius, float M, float N, float color[4])
+{
+    float step_z = PI / M;
+    float step_xy = 2 * PI / N;
+    float x[4], y[4], z[4];
+
+    float angle_z = 0.0;
+    float angle_xy = 0.0;
+    int i = 0, j = 0;
+    glBegin(GL_QUADS);
+    glColor4f (color[0]/255, color[1]/255, color[2]/255, color[3]);
+    for(i = 0; i < M; i++)
+    {
+        angle_z = i * step_z;
+        for(j = 0; j < N; j++)
+        {
+            angle_xy = j * step_xy;
+
+            x[0] = radius * sin(angle_z) * cos(angle_xy);
+            y[0] = radius * sin(angle_z) * sin(angle_xy);
+            z[0] = radius * cos(angle_z);
+
+            x[1] = radius * sin(angle_z + step_z) * cos(angle_xy);
+            y[1] = radius * sin(angle_z + step_z) * sin(angle_xy);
+            z[1] = radius * cos(angle_z + step_z);
+
+            x[2] = radius * sin(angle_z + step_z) * cos(angle_xy + step_xy);
+            y[2] = radius * sin(angle_z + step_z) * sin(angle_xy + step_xy);
+            z[2] = radius * cos(angle_z + step_z);
+
+            x[3] = radius * sin(angle_z) * cos(angle_xy + step_xy);
+            y[3] = radius * sin(angle_z) * sin(angle_xy + step_xy);
+            z[3] = radius * cos(angle_z);
+            for(int k = 0; k < 4; k++)
+            {
+                glVertex3f(xx + x[k], yy + y[k], zz + z[k]);
+            }
+        }
+    }
+    glEnd();
 }

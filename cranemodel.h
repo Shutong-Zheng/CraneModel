@@ -23,10 +23,22 @@ private:
     void drawStrenchBracket(float theta, float omega, float d, float l);
     void drawHook(float theta, float omega, float l, float d, float d1);
 
-    void drawCoordinate(float r);
-    void drawXAxis(float r);
-    void drawYAxis(float r);
-    void drawZAxis(float r);
+    void drawObstacle(float alpha, float phi, float d, float r);
+    void drawSphere(float xx, float yy, float zz,
+                    float radius, float M, float N, float color[4]);
+
+    void drawCoordinate(float xMin = -20, float xMax = 20, float xStep = 5,
+                        float yMin = -20, float yMax = 20, float yStep = 5,
+                        float zMin = 0, float zMax = 40, float zStep = 5);
+    void drawXAxis(float xMin = -20, float xMax = 20, float xStep = 5,
+                   float yMin = -20, float yMax = 20,
+                   float zMin = 0, float zMax = 40);
+    void drawYAxis(float yMin = -20, float yMax = 20, float yStep = 5,
+                   float xMin = -20, float xMax = 20,
+                   float zMin = 0, float zMax = 40);
+    void drawZAxis(float zMin = 0, float zMax = 40, float zStep = 5,
+                   float xMin = -20, float xMax = 20,
+                   float yMin = -20, float yMax = 20);
 
     void drawRec(float omega);
 
@@ -38,7 +50,13 @@ private:
 
     float theta;
     float omega;
+    float alpha;    //确定障碍物位置
+    float phi;
+    float d;
     float l;    //用于绘制伸缩杆,仅仅表示伸长的那一段
+    float xv, yv, zv;
+
+    boolean obstacleDraw = false;
 
     QPoint lastPos;
 
