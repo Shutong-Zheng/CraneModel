@@ -62,7 +62,7 @@ void CraneModel::paintGL()
     drawFixedBracket1(theta, omega, 1.5, 1.5, 1.75);
     drawStrenchBracket(theta, omega, 0.8, l);
     drawHook(theta, omega, l, 0.8, 4);
-    drawObstacle(alpha, phi, d, 10);
+    drawObstacle(alpha, phi, d, 8);
     glPopMatrix();
 }
 
@@ -673,10 +673,13 @@ void CraneModel::drawObstacle(float alpha, float phi, float d, float r)
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     float color[4] = {220, 20, 60, 0.8};
     drawSphere(xv, yv, zv, r, 100, 100, color);
-//    float color1[4] = {255, 99, 71, 0.6};
-//    drawSphere(xv, yv, zv, 10, 100, 100, color1);
-//    float color2[4] = {255, 250, 205, 0.5};
-//    drawSphere(xv, yv, zv, 13, 100, 100, color2);
+    drawCircle(xv, yv, zv, r);
+    float color1[4] = {255, 99, 71, 0.6};
+    drawSphere(xv, yv, zv, 10, 100, 100, color1);
+    drawCircle(xv, yv, zv, 10);
+    float color2[4] = {255, 250, 205, 0.5};
+    drawSphere(xv, yv, zv, 13, 100, 100, color2);
+    drawCircle(xv, yv, zv, 13);
     glDisable(GL_BLEND); // 打开混合
     glEnable(GL_DEPTH_TEST); // 关闭深度测试
 
@@ -722,6 +725,18 @@ void CraneModel::drawSphere(float xx, float yy, float zz,
                 glVertex3f(xx + x[k], yy + y[k], zz + z[k]);
             }
         }
+    }
+    glEnd();
+}
+
+
+void CraneModel::drawCircle(float xx, float yy, float zz, float r)
+{
+    glBegin(GL_LINE_LOOP);
+    qglColor(Qt::black);
+    for(int i = 0;i <= 360;i++){
+        float theta = PI * i / 180;
+        glVertex3f(xx + r*cos(theta), yy + r*sin(theta),zz);
     }
     glEnd();
 }

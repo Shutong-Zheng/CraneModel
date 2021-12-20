@@ -18,6 +18,7 @@ protected:
 private:
     void drawCylinder(float r);    //绘制底盘
     void drawCircle(float z, float r);
+    void drawCircle(float xx, float yy, float zz, float r);
     void drawFixedBracket(float omega, float d);    //第一节固定
     void drawFixedBracket1(float theta, float omega, float d, float d1, float r);   //第二节固定,r表示圆柱半径
     void drawStrenchBracket(float theta, float omega, float d, float l);
