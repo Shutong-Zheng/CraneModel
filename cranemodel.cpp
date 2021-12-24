@@ -4,16 +4,20 @@
 #include <math.h>
 #include <QDebug>
 #include <QColor>
+#include <QPalette>
+#include <QGridLayout>
 
 const float PI = 3.1415926;
 
 CraneModel::CraneModel(QWidget *parent):
     QGLWidget(parent)
 {
+    this->setMinimumSize(QSize(770, 550));
     xRot = 0;
     yRot = 0;
     zRot = 0;
 
+    //从下位机获取的
     omega = 0;
     theta = 15*3.14/180;
     l = 10;
@@ -21,10 +25,13 @@ CraneModel::CraneModel(QWidget *parent):
     alpha = 10*3.14/180;
     phi = 30*3.14/180;
     d = 20;
+    //右下角显示窗口
+    initLegend();
+
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, [=](){
-                omega += 3.14/10000;
+                omega += 3.14/1000;
                 theta += 3.14/10000;
                 l += 1;
                 if(theta > 3.14 * 50/180)
@@ -34,9 +41,14 @@ CraneModel::CraneModel(QWidget *parent):
                 if(l > 26){
                     l = 0;
                 }
+                thetaData->setText(QString::number(this->theta*180/PI));
+                omegaData->setText(QString::number((this->omega- offset)*180/PI));
+                lData->setText(QString::number(this->l));
                 updateGL();
             });  //一直旋转，主要看坐标设置部分
-    timer->start(40);
+    timer->start(60);
+
+    connect(reset, &QPushButton::clicked, this, &CraneModel::resetOmega);
 }
 
 
@@ -58,11 +70,11 @@ void CraneModel::paintGL()
     drawCoordinate(-30, 50);
 //    drawRec(omega);
     drawCylinder(6);
-    drawFixedBracket(omega, 1.5);
-    drawFixedBracket1(theta, omega, 1.5, 1.5, 1.75);
-    drawStrenchBracket(theta, omega, 0.8, l);
-    drawHook(theta, omega, l, 0.8, 4);
-    drawObstacle(alpha, phi, d, 8);
+    drawObstacle(alpha, phi, d, 8);     //先绘制获取偏差
+    drawFixedBracket(omega - offset, 1.5);
+    drawFixedBracket1(theta, omega - offset, 1.5, 1.5, 1.75);
+    drawStrenchBracket(theta, omega - offset, 0.8, l);
+    drawHook(theta, omega - offset, l, 0.8, 4);
     glPopMatrix();
 }
 
@@ -658,6 +670,7 @@ void CraneModel::drawObstacle(float alpha, float phi, float d, float r)
         xv = xp1 + d*cos(alpha)*cos(phi);
         yv = yp1 + d*cos(alpha)*sin(phi);
         zv = zp1 + d*sin(alpha);
+        offset = 0;     //从传感器获取当前角度作为初始偏差
         obstacleDraw = true;
 //        GLfloat LightAmbient[] = {253/255,245/255,230/255,0.5f};  //环境光参数
 //        GLfloat LightDiffuse[] = {0.3f, 0.5f, 0.2f, 0.5f};  //漫散光参数
@@ -668,8 +681,8 @@ void CraneModel::drawObstacle(float alpha, float phi, float d, float r)
 //        glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);   //设置光源位置
 //        glEnable(GL_LIGHT1);                                //启动一号光源
     }
-    glEnable(GL_BLEND); // 打开混合
-    glDisable(GL_DEPTH_TEST); // 关闭深度测试
+    //glEnable(GL_BLEND); // 打开混合
+    //glDisable(GL_DEPTH_TEST); // 关闭深度测试
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     float color[4] = {220, 20, 60, 0.8};
     drawSphere(xv, yv, zv, r, 100, 100, color);
@@ -679,7 +692,7 @@ void CraneModel::drawObstacle(float alpha, float phi, float d, float r)
     drawCircle(xv, yv, zv, 10);
     float color2[4] = {255, 250, 205, 0.5};
     drawSphere(xv, yv, zv, 13, 100, 100, color2);
-    drawCircle(xv, yv, zv, 13);
+    //drawCircle(xv, yv, zv, 13);
     glDisable(GL_BLEND); // 打开混合
     glEnable(GL_DEPTH_TEST); // 关闭深度测试
 
@@ -739,4 +752,55 @@ void CraneModel::drawCircle(float xx, float yy, float zz, float r)
         glVertex3f(xx + r*cos(theta), yy + r*sin(theta),zz);
     }
     glEnd();
+}
+
+void CraneModel::initLegend()
+{
+    legend = new QWidget(this);
+    legend->setWindowOpacity(0.3);
+    legend->setStyleSheet(".QWidget{background-color:#D4F2E7}");
+    QGridLayout *gridLayout = new QGridLayout();
+    gridLayout->setSpacing(1);
+    gridLayout->setMargin(6);
+
+    reset = new  QPushButton();
+    reset->setText("复位");
+    QLabel *thetaLabel = new QLabel();
+    thetaLabel->setText("Theta：");
+    thetaData = new QLabel();
+    thetaData->setText(QString::number(this->theta));
+
+    QLabel *omegaLabel = new QLabel();
+    omegaLabel->setText("Omega：");
+    omegaData = new QLabel();
+    omegaData->setText(QString::number(this->omega));
+
+    QLabel *lLabel = new QLabel();
+    lLabel->setText("L：");
+    lData = new QLabel();
+    lData->setText(QString::number(this->l));
+
+    gridLayout->addWidget(reset, 0, 0, 1, 2);
+    gridLayout->addWidget(thetaLabel, 1,0);
+    gridLayout->addWidget(thetaData, 1,1);
+    gridLayout->addWidget(omegaLabel, 2,0);
+    gridLayout->addWidget(omegaData, 2,1);
+    gridLayout->addWidget(lLabel, 3,0);
+    gridLayout->addWidget(lData, 3,1);
+    legend->setLayout(gridLayout);
+}
+
+void CraneModel::resizeEvent(QResizeEvent *event)
+{
+    int width = event->size().width();
+    int height = event->size().height();
+    legend->setGeometry(width - 160, (height - 220)*2/3, 150, 200);
+    qDebug() << "width:" << width << " height:" << height;
+}
+
+void CraneModel::resetOmega()
+{
+    this->omega = 0;
+    //控制吊臂旋转部分复位
+
 }

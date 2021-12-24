@@ -1,6 +1,8 @@
 #ifndef CRANEMODEL_H
 #define CRANEMODEL_H
 #include <QGLWidget>
+#include <QLabel>
+#include <QPushButton>
 
 class CraneModel : public QGLWidget
 {
@@ -44,7 +46,10 @@ private:
     void drawRec(float omega);
 
     void normalizeAngle(int *angle);
+    void initLegend();
+    void resizeEvent (QResizeEvent * event);
 
+    QWidget *legend;
     int xRot;
     int yRot;
     int zRot;
@@ -56,6 +61,12 @@ private:
     float d;
     float l;    //用于绘制伸缩杆,仅仅表示伸长的那一段
     float xv, yv, zv;
+    float offset;   //用于表示初始位置角度偏差，上位机上的吊臂模型每次的初始位置都是沿着x轴方向
+
+    QLabel *thetaData;
+    QLabel *omegaData;
+    QLabel *lData;
+    QPushButton *reset;
 
     boolean obstacleDraw = false;
 
@@ -70,6 +81,7 @@ public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
+    void resetOmega();
 };
 
 #endif // CRANEMODEL_H
