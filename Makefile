@@ -247,6 +247,7 @@ Makefile: Crane3DModel.pro ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspec
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/qt_config.prf \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/win32-g++/qmake.conf \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/exclusive_builds.prf \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/toolchain.prf \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/default_pre.prf \
@@ -276,7 +277,6 @@ Makefile: Crane3DModel.pro ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspec
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/lib/Qt5Gui.prl \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/lib/Qt5Core.prl \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/lib/qtmain.prl \
-		.qmake.stash \
 		../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/build_pass.prf
 	$(QMAKE) -o Makefile Crane3DModel.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/spec_pre.prf:
@@ -456,6 +456,7 @@ Makefile: Crane3DModel.pro ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspec
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/qt_config.prf:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/win32-g++/qmake.conf:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/spec_post.prf:
+.qmake.stash:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/exclusive_builds.prf:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/toolchain.prf:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/default_pre.prf:
@@ -485,7 +486,6 @@ Crane3DModel.pro:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/lib/Qt5Gui.prl:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/lib/Qt5Core.prl:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/lib/qtmain.prl:
-.qmake.stash:
 ../../../../Util/Qt/Qt5.14.2/5.14.2/mingw73_32/mkspecs/features/build_pass.prf:
 qmake: FORCE
 	@$(QMAKE) -o Makefile Crane3DModel.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"

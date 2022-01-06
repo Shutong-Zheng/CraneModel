@@ -3,6 +3,7 @@
 #include <QGLWidget>
 #include <QLabel>
 #include <QPushButton>
+#include "point.h"
 
 class CraneModel : public QGLWidget
 {
@@ -48,6 +49,11 @@ private:
     void normalizeAngle(int *angle);
     void initLegend();
     void resizeEvent (QResizeEvent * event);
+
+
+    //绘制网格球面
+    Point getPoint(double u,double v, float xx, float yy, float zz, float r);
+    void drawWire(int uStepsNum , int vStepNum, float xx, float yy, float zz, float r, float color[4]);
 
     QWidget *legend;
     int xRot;

@@ -22,7 +22,8 @@ SOURCES += \
 
 HEADERS += \
     cranemodel.h \
-    mainwindow.h
+    mainwindow.h \
+    point.h
 
 FORMS += \
     mainwindow.ui

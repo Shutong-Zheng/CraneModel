@@ -7,7 +7,9 @@
 #include <QPalette>
 #include <QGridLayout>
 
+
 const float PI = 3.1415926;
+const float PI2 = 6.2831853;
 
 CraneModel::CraneModel(QWidget *parent):
     QGLWidget(parent)
@@ -27,7 +29,6 @@ CraneModel::CraneModel(QWidget *parent):
     d = 20;
     //右下角显示窗口
     initLegend();
-
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, [=](){
@@ -681,20 +682,24 @@ void CraneModel::drawObstacle(float alpha, float phi, float d, float r)
 //        glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);   //设置光源位置
 //        glEnable(GL_LIGHT1);                                //启动一号光源
     }
-    //glEnable(GL_BLEND); // 打开混合
-    //glDisable(GL_DEPTH_TEST); // 关闭深度测试
+    glEnable(GL_BLEND); // 打开混合
+    glDisable(GL_DEPTH_TEST); // 关闭深度测试
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     float color[4] = {220, 20, 60, 0.8};
-    drawSphere(xv, yv, zv, r, 100, 100, color);
-    drawCircle(xv, yv, zv, r);
-    float color1[4] = {255, 99, 71, 0.6};
-    drawSphere(xv, yv, zv, 10, 100, 100, color1);
-    drawCircle(xv, yv, zv, 10);
-    float color2[4] = {255, 250, 205, 0.5};
-    drawSphere(xv, yv, zv, 13, 100, 100, color2);
-    //drawCircle(xv, yv, zv, 13);
-    glDisable(GL_BLEND); // 打开混合
-    glEnable(GL_DEPTH_TEST); // 关闭深度测试
+//    drawSphere(xv, yv, zv, r, 100, 100, color);
+//    drawCircle(xv, yv, zv, r);
+    float color1[4] = {238, 201, 0, 0.4};
+//    drawSphere(xv, yv, zv, 10, 100, 100, color1);
+//    drawCircle(xv, yv, zv, 10);
+    float color2[4] = {50, 205, 50, 0.5};
+    //float color2[4] = {255, 255, 20, 0.3};
+//    drawSphere(xv, yv, zv, 13, 100, 100, color2);
+//    drawCircle(xv, yv, zv, 13);
+//    glDisable(GL_BLEND); // 打开混合
+//    glEnable(GL_DEPTH_TEST); // 关闭深度测试
+    drawWire(30, 30, xv, yv, zv, r, color);
+    drawWire(30, 30, xv, yv, zv, 10, color1);
+    drawWire(30, 30, xv, yv, zv, 13, color2);
 
     //glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 }
@@ -803,4 +808,66 @@ void CraneModel::resetOmega()
     this->omega = 0;
     //控制吊臂旋转部分复位
 
+}
+
+
+Point CraneModel::getPoint(double u,double v, float xx, float yy, float zz, float r)
+{
+    double x = r*sin(PI*v)*cos(PI2*u) + xx;
+    double y = r*sin(PI*v)*sin(PI2*u) + yy;
+    double z = r*cos(PI*v) + zz;
+    return Point(x,y,z);
+}
+
+void CraneModel::drawWire(int uStepsNum , int vStepNum, float xx, float yy, float zz, float r, float color[4])
+{
+    double ustep = 1/(double)uStepsNum, vstep = 1/(double)vStepNum;
+    double u = 0,v = 0;
+    //绘制下端三角形组
+    glColor3f (color[0]/255, color[1]/255, color[2]/255);
+    for(int i = 0;i<uStepsNum;i++)
+    {
+        glBegin(GL_LINE_LOOP);
+        Point a = getPoint(0,0, xx, yy, zz, r);
+        glVertex3d(a.x,a.y,a.z);
+        Point b = getPoint(u,vstep, xx, yy, zz, r);
+        glVertex3d(b.x,b.y,b.z);
+        Point c = getPoint(u+ustep,vstep, xx, yy, zz, r);
+        glVertex3d(c.x,c.y,c.z);
+        u += ustep;
+        glEnd();
+    }
+    //绘制中间四边形组
+    u = 0, v = vstep;
+    for(int i=1;i<vStepNum-1;i++)
+    {
+        for(int j=0;j<uStepsNum;j++)
+        {
+            glBegin(GL_LINE_LOOP);
+            Point a = getPoint(u,v, xx, yy, zz, r);
+            Point b = getPoint(u+ustep,v, xx, yy, zz, r);
+            Point c = getPoint(u+ustep,v+vstep, xx, yy, zz, r);
+            Point d = getPoint(u,v+vstep, xx, yy, zz, r);
+            glVertex3d(a.x,a.y,a.z);
+            glVertex3d(b.x,b.y,b.z);
+            glVertex3d(c.x,c.y,c.z);
+            glVertex3d(d.x,d.y,d.z);
+            u += ustep;
+            glEnd();
+        }
+        v += vstep;
+    }
+    //绘制下端三角形组
+    u = 0;
+    for(int i=0;i<uStepsNum;i++)
+    {
+        glBegin(GL_LINE_LOOP);
+        Point a = getPoint(0,1, xx, yy, zz, r);
+        Point b = getPoint(u,1-vstep, xx, yy, zz, r);
+        Point c = getPoint(u+ustep,1-vstep, xx, yy, zz, r);
+        glVertex3d(a.x,a.y,a.z);
+        glVertex3d(b.x,b.y,b.z);
+        glVertex3d(c.x,c.y,c.z);
+        glEnd();
+    }
 }
